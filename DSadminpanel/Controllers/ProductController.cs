@@ -1,4 +1,12 @@
 ﻿using DSadminpanel.Models;
+using DSadminpanel.Data;
+using DSadminpanel.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DSadminpanel.Controllers
 {
@@ -6,9 +14,9 @@ namespace DSadminpanel.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly DSadminpanel _context;
+        private readonly DSDbContext _context;
 
-        public ProductController(DSadminpanel context)
+        public ProductController(DSDbContext context)
         {
             _context = context;
         }
@@ -45,7 +53,7 @@ namespace DSadminpanel.Controllers
                 return BadRequest();
             }
 
-            _context.Ürün.Add(product);
+            _context.modified8.Add(product);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetProduct), new { id = product.urunid }, product);
