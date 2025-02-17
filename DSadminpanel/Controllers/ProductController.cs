@@ -1,22 +1,14 @@
-﻿using DSadminpanel.Data;
-using DSadminpanel.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using DSadminpanel.Models;
+
 namespace DSadminpanel.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly DSDbContext _context;
+        private readonly DSadminpanel _context;
 
-        public ProductController(DSDbContext context)
+        public ProductController(DSadminpanel context)
         {
             _context = context;
         }
@@ -25,7 +17,7 @@ namespace DSadminpanel.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<modified8>>> GetProducts()
         {
-            var products = await _context.Ürün.ToListAsync();
+            var products = await _context.modified8.ToListAsync();
             return Ok(products);
         }
 
@@ -53,7 +45,7 @@ namespace DSadminpanel.Controllers
                 return BadRequest();
             }
 
-            _context.modified8.Add(product);
+            _context.Ürün.Add(product);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetProduct), new { id = product.urunid }, product);
@@ -99,7 +91,7 @@ namespace DSadminpanel.Controllers
                 return NotFound();
             }
 
-            _context.Ürün.Remove(product);
+            _context.modified8.Remove(product);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -110,5 +102,4 @@ namespace DSadminpanel.Controllers
             return _context.modified8.Any(e => e.urunid == id);
         }
     }
-
 }
