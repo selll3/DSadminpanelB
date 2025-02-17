@@ -1,6 +1,6 @@
 ﻿using DSadminpanel.Models;
 using DSadminpanel.Data;
-using DSadminpanel.Models;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DSadminpanel.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
     public class ProductController : ControllerBase
     {
