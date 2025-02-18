@@ -94,7 +94,7 @@ namespace DSadminpanel.Controllers
         {
             if (id != product.urunid)
             {
-                return BadRequest();
+                return BadRequest("Ürün ID'si eşleşmiyor.");
             }
 
             _context.Entry(product).State = EntityState.Modified;
