@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace DSadminpanel.Controllers
 {
     [Route("api/products")]
+
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -23,10 +24,38 @@ namespace DSadminpanel.Controllers
 
         // GET: api/Product
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<modified8>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<modified8>>> GetProducts(int pageNumber = 1, int pageSize = 50)
         {
-            var products = await _context.modified8.ToListAsync();
-            return Ok(products);
+            try
+            {
+                var totalItems = await _context.modified8.CountAsync();
+                var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                var skipAmount = (pageNumber - 1) * pageSize;
+
+                var products = await _context.modified8
+                    .OrderBy(p => p.urunid)  // Burada sıralama işlemi yapılır (ID veya istediğiniz bir alan)
+                    .Skip(skipAmount)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var result = new
+                {
+                    totalItems,
+                    totalPages,
+                    pageNumber,
+                    pageSize,
+                    products
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Hata: {ex.Message}");
+                return StatusCode(500, "Sunucu hatası oluştu.");
+            }
+
         }
 
         // GET: api/Product/5
@@ -88,6 +117,51 @@ namespace DSadminpanel.Controllers
 
             return NoContent();
         }
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm, int pageNumber = 1, int pageSize = 50)
+        {
+            // 1️⃣ Arama terimi boşsa hata dön
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return BadRequest(new { message = "Arama terimi gereklidir." });
+            }
+
+            try
+            {
+                var query = _context.modified8.AsQueryable();
+
+                // 2️⃣ Filtreleme yap
+                query = query.Where(p => p.İsim.Contains(searchTerm) || p.Ürün_kodu.Contains(searchTerm));
+
+                // 3️⃣ Toplam kayıt sayısını al
+                var totalItems = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                var skipAmount = (pageNumber - 1) * pageSize;
+
+                // 4️⃣ Sayfalama işlemi uygula
+                var products = await query
+                    .OrderBy(p => p.urunid) // Verileri sıralıyoruz
+                    .Skip(skipAmount)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // 5️⃣ Sonucu döndür
+                return Ok(new
+                {
+                    products,
+                    totalPages,
+                    totalItems,
+                    pageNumber
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Arama hatası: {ex.Message}");
+                return StatusCode(500, new { message = "Sunucu hatası oluştu." });
+            }
+        }
+
+
 
         // DELETE: api/Product/5
         [HttpDelete("{id}")]

@@ -9,7 +9,7 @@ namespace DSadminpanel.Models
         public string Ürün_kodu { get; set; }
 
         [StringLength(350)]
-        public string?İsim { get; set; }
+        public string? İsim { get; set; }
 
         [StringLength(50)]
         public string? DVZ { get; set; }
@@ -43,7 +43,7 @@ namespace DSadminpanel.Models
         public int? Stok { get; set; }
 
         [StringLength(255)]
-        public string Ana_kategori { get; set; }
+        public string? Ana_kategori { get; set; }
 
         public bool? Stok_kullanır { get; set; }
 
