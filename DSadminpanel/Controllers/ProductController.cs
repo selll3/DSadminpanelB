@@ -79,7 +79,7 @@ namespace DSadminpanel.Controllers
             // Validasyon işlemi
             if (product == null)
             {
-                return BadRequest();
+                return BadRequest("Ürün bilgisi boş olamaz.");
             }
 
             _context.modified8.Add(product);
@@ -117,10 +117,54 @@ namespace DSadminpanel.Controllers
 
             return NoContent();
         }
+        //[HttpGet("search")]
+        //public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm, int pageNumber = 1, int pageSize = 50)
+        //{
+        //    // 1️⃣ Arama terimi boşsa hata dön
+        //    if (string.IsNullOrWhiteSpace(searchTerm))
+        //    {
+        //        return BadRequest(new { message = "Arama terimi gereklidir." });
+        //    }
+
+        //    try
+        //    {
+        //        var query = _context.modified8.AsQueryable();
+
+        //        // 2️⃣ Filtreleme yap (büyük/küçük harf duyarsız arama)
+        //        query = query.Where(p => EF.Functions.Like(p.İsim.ToLower(), "%" + searchTerm.ToLower() + "%") ||
+        //                                 EF.Functions.Like(p.Ürün_kodu.ToLower(), "%" + searchTerm.ToLower() + "%"));
+
+        //        // 3️⃣ Toplam kayıt sayısını al
+        //        var totalItems = await query.CountAsync();
+        //        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        //        var skipAmount = (pageNumber - 1) * pageSize;
+
+        //        // 4️⃣ Sayfalama işlemi uygula
+        //        var products = await query
+        //            .OrderBy(p => p.urunid) // Verileri sıralıyoruz
+        //            .Skip(skipAmount)
+        //            .Take(pageSize)
+        //            .ToListAsync();
+
+        //        // 5️⃣ Sonucu döndür
+        //        return Ok(new
+        //        {
+        //            products,
+        //            totalPages,
+        //            totalItems,
+        //            pageNumber
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Arama hatası: {ex.Message}");
+        //        return StatusCode(500, new { message = "Sunucu hatası oluştu." });
+        //    }
+        //}
+
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm, int pageNumber = 1, int pageSize = 50)
         {
-            // 1️⃣ Arama terimi boşsa hata dön
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
                 return BadRequest(new { message = "Arama terimi gereklidir." });
@@ -130,22 +174,24 @@ namespace DSadminpanel.Controllers
             {
                 var query = _context.modified8.AsQueryable();
 
-                // 2️⃣ Filtreleme yap
+                // 2️⃣ Arama filtresi
                 query = query.Where(p => p.İsim.Contains(searchTerm) || p.Ürün_kodu.Contains(searchTerm));
 
-                // 3️⃣ Toplam kayıt sayısını al
+                // 3️⃣ Sayfalama hesaplama
                 var totalItems = await query.CountAsync();
                 var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-                var skipAmount = (pageNumber - 1) * pageSize;
+                var skipAmount = (pageNumber > 1) ? (pageNumber - 1) * pageSize : 0;
 
-                // 4️⃣ Sayfalama işlemi uygula
+                // 4️⃣ Sıralama & Sayfalama
                 var products = await query
-                    .OrderBy(p => p.urunid) // Verileri sıralıyoruz
+                    .OrderByDescending(p => p.İsim == searchTerm)  // "den" isimli ürünleri en üste al
+                    .ThenByDescending(p => p.Ürün_kodu == searchTerm) // Ürün kodu da tam eşleşiyorsa üstte olsun
+                    .ThenBy(p => p.urunid) // Son olarak ID sırasına göre düzenle
                     .Skip(skipAmount)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // 5️⃣ Sonucu döndür
+                // 5️⃣ Sonuç
                 return Ok(new
                 {
                     products,
@@ -160,6 +206,7 @@ namespace DSadminpanel.Controllers
                 return StatusCode(500, new { message = "Sunucu hatası oluştu." });
             }
         }
+
 
 
 
