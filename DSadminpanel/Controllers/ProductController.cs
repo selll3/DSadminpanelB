@@ -21,6 +21,46 @@ namespace DSadminpanel.Controllers
         {
             _context = context;
         }
+        [HttpGet("urun")]
+        public async Task<IActionResult> GetUrunler([FromQuery] string search, int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(search) || search.Length < 4)
+                {
+                    return Ok(new { message = "En az 4 karakter girin.", products = new List<modified8>(), totalItems = 0, totalPages = 0 });
+                }
+
+                var query = _context.modified8
+                    .Where(p => p.İsim.Contains(search) || p.Ürün_kodu.Contains(search)); // Arama filtresi
+
+                int totalItems = await query.CountAsync(); // Toplam ürün sayısı
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                int skipAmount = (page - 1) * pageSize;
+
+                var products = await query
+                    .OrderBy(p => p.urunid) // ID'ye göre sırala
+                    .Skip(skipAmount)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    products,      // Ürünler
+                    totalItems,    // Toplam ürün sayısı
+                    totalPages,    // Toplam sayfa sayısı
+                    page           // Mevcut sayfa
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ürün arama hatası: {ex.Message}");
+                return StatusCode(500, new { message = "Sunucu hatası oluştu." });
+            }
+        }
+
+
+
 
         // GET: api/Product
         [HttpGet]
