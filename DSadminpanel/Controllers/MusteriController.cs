@@ -21,12 +21,22 @@
             _context = context;
         }
 
-        // 📌 Tüm müşterileri listele
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<musteri>>> GetMusteriler()
+        public async Task<ActionResult<IEnumerable<musteri>>> GetMusteriler([FromQuery] string search, int page = 1, int pageSize = 10)
         {
-            return await _context.musteri.ToListAsync();
+            var query = _context.musteri.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(m => m.ad_soyad_firma.Contains(search));
+            }
+
+            var totalItems = await query.CountAsync();
+            var musteriler = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return Ok(new { musteriler, totalItems, totalPages = (int)Math.Ceiling((double)totalItems / pageSize) });
         }
+
 
         // 📌 ID'ye göre müşteri getir
         [HttpGet("{id}")]
