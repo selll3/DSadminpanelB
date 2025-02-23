@@ -128,20 +128,36 @@ namespace DSadminpanel.Controllers
             return CreatedAtAction(nameof(GetProduct), new { id = product.urunid }, product);
         }
 
-        // PUT: api/Product/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, modified8 product)
         {
+            Console.WriteLine($"Gelen Ürün ID: {id}");
+            Console.WriteLine($"Gelen Ürün Adı: {product.İsim}");
+            Console.WriteLine($"Gelen Ürün Kodu: {product.Ürün_kodu}");
+
             if (id != product.urunid)
             {
                 return BadRequest("Ürün ID'si eşleşmiyor.");
+            }
+
+            var existingProduct = await _context.modified8
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.urunid == id);
+
+            if (existingProduct == null)
+            {
+                return NotFound("Güncellenmek istenen ürün bulunamadı.");
             }
 
             _context.Entry(product).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                var updatedRows = await _context.SaveChangesAsync();
+                if (updatedRows == 0)
+                {
+                    return BadRequest("Ürün güncellenmedi, lütfen kontrol edin.");
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -155,8 +171,9 @@ namespace DSadminpanel.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(product);
         }
+
         //[HttpGet("search")]
         //public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm, int pageNumber = 1, int pageSize = 50)
         //{
